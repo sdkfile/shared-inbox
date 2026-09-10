@@ -1,0 +1,21 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      # TZ=UTC 로 돌린다. 작성일자가 KST 로 고정되는지 확인하는 게 목적이다.
+      - run: npm run check
+        env:
+          TZ: UTC

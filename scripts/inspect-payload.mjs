@@ -10,8 +10,23 @@
  */
 
 import { readFileSync } from 'node:fs'
-import { parseInboundEmail, resolveThreadKey } from '../dist/resend/parseEmail.js'
-import { findBusinessLicenseCandidates } from '../dist/resend/parseEmail.js'
+
+import { existsSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import { dirname, join } from 'node:path'
+
+// dist 가 없으면 import 가 ERR_MODULE_NOT_FOUND 로 죽는다. 스킬로 설치한
+// 직후 가장 먼저 밟는 지뢰라, 스택 트레이스 대신 할 일을 알려준다.
+// ESM 정적 import 는 코드 실행 전에 해석되므로 동적 import 를 쓴다.
+const root = join(dirname(fileURLToPath(import.meta.url)), '..')
+if (!existsSync(join(root, 'dist'))) {
+  console.error('빌드가 필요합니다:\n')
+  console.error('  npm install && npm run build\n')
+  console.error('(스크립트가 dist/ 를 사용합니다. 최초 1회만 하면 됩니다.)')
+  process.exit(1)
+}
+
+const { findBusinessLicenseCandidates, parseInboundEmail, resolveThreadKey } = await import('../dist/resend/parseEmail.js')
 
 function readInput() {
   const file = process.argv[2]

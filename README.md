@@ -115,12 +115,68 @@ export async function POST(req: Request) {
 
 ## Claude Code 스킬로 쓰기
 
-이 리포를 스킬 디렉터리에 두면 Claude 가 `SKILL.md` 를 읽고 스크립트를
-직접 실행한다.
+스킬 디렉터리에 두면 Claude 가 `SKILL.md` 를 읽고 스크립트를 직접 실행한다.
+수신 설정 점검, 웹훅 페이로드 진단, 라우팅이 이상할 때 원인 찾기까지 절차가
+문서에 있다.
+
+### 설치
+
+```bash
+# Claude Code
+git clone https://github.com/sdkfile/shared-inbox \
+  ~/.claude/skills/shared-inbox
+
+# Hermes
+git clone https://github.com/sdkfile/shared-inbox \
+  ~/.hermes/skills/shared-inbox
+```
+
+### 빌드 (최초 1회, 필수)
+
+```bash
+cd ~/.claude/skills/shared-inbox
+npm install && npm run build
+```
+
+`inspect-payload` 가 `dist/` 를 쓴다. 잊었을 때는 스크립트가 무엇을 해야
+하는지 알려준다.
+
+### 키 설정
+
+```bash
+export RESEND_FULL_API_KEY=re_xxxxx    # 수신 조회는 full access 키
+export RESEND_WEBHOOK_SECRET=whsec_xxx # 없으면 모든 요청을 거절한다
+```
+
+발신 전용 키를 쓰면 `401 restricted_api_key` 가 온다.
+
+### 확인
+
+```bash
+node scripts/preflight.mjs
+```
+
+수신 도메인의 MX 가 Resend 를 가리키는지까지 본다. Claude 에게는 이렇게
+말하면 된다.
+
+> 수신 메일 웹훅 설정 제대로 됐는지 봐줘
+
+### 사용 예
 
 ```
-~/.claude/skills/shared-inbox/
+사용자: 메일이 왔는데 우리 시스템에 안 들어와. 봐줄래?
+
+Claude: (preflight → MX·시크릿 확인 → 저장한 페이로드 진단)
+
+        원 수신처   (복원 실패)
+        전달 경유   예
+
+        ⚠ 전달을 거쳤는데 원 주소를 못 찾았습니다.
+          delivered-to 헤더를 확인하세요. 이 값으로 라우팅하면
+          모든 메일이 한 곳으로 온 것처럼 보입니다.
 ```
+
+이 스킬은 **메일을 보내지 않는다.** 진단하고 알려줄 뿐이다.
 
 ## 문서
 
